@@ -316,8 +316,9 @@ function extractFileSize(html: string): string {
   if (carouselFileSizeMatch && carouselFileSizeMatch[1]) {
     return decodeHtmlEntities(carouselFileSizeMatch[1].trim());
   }
-   // 2. Fallback for "File size" in detail bullets. This regex is more flexible.
-  const detailFileSizeMatch = html.match(/<li>\s*<span class="a-list-item">\s*<b>File size<\/b>\s*:\s*([^<]+)\s*<\/span>\s*<\/li>/i);
+
+  // 2. Fallback for "detailBullets" list where label and value are in sibling spans.
+  const detailFileSizeMatch = html.match(/<span class=["']a-text-bold["']>\s*File size\s*[^<]*<\/span>\s*<span>([^<]+)<\/span>/i);
   if (detailFileSizeMatch && detailFileSizeMatch[1]) {
     return decodeHtmlEntities(detailFileSizeMatch[1].trim());
   }
@@ -332,8 +333,8 @@ function extractFileSize(html: string): string {
       }
   }
 
-  // 4. Fallback for generic text format: "File size" followed by value in the next span
-  const genericFileSizeMatch = html.match(/<span[^>]*>\s*File size\s*<\/span>\s*<span[^>]*>([^<]+)<\/span>/i);
+  // 4. Generic fallback looking for the label and capturing subsequent text.
+  const genericFileSizeMatch = html.match(/(?:<b>File size<\/b>|File size\s*<\/span>\s*<span[^>]*>)([^<]+)<\/span>/i);
   if (genericFileSizeMatch && genericFileSizeMatch[1]) {
       return decodeHtmlEntities(genericFileSizeMatch[1].trim());
   }
