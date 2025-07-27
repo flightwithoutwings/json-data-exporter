@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { AppHeader } from '@/components/AppHeader';
 import { ScraperForm } from '@/components/ScraperForm';
+import { ImageScraperForm } from '@/components/ImageScraperForm';
 import { ScrapedItemEditor } from '@/components/ScrapedItemEditor';
 import { CollectedItemsDisplay } from '@/components/CollectedItemsDisplay';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { downloadJson, generateId } from '@/lib/utils';
@@ -55,14 +57,15 @@ export default function HomePage() {
     setEditingItemId(null);
   };
 
-  const handleScrapeSuccess = (data: ScrapedItemData) => {
+  const handleScrapeSuccess = (data: ScrapedItemData, source: string = "URL") => {
     setIsLoading(false);
-    setCurrentItemData(data);
-    setOriginalScrapedData(data); // Store original for reset
-    setSuccessMessage("Data scraped successfully! You can now edit it below.");
+    const dataWithSource = { ...data, sourceUrl: data.sourceUrl || source };
+    setCurrentItemData(dataWithSource);
+    setOriginalScrapedData(dataWithSource); // Store original for reset
+    setSuccessMessage(`Data extracted from ${source} successfully! You can now edit it below.`);
     toast({
-      title: "Scraping Successful",
-      description: `Data from "${data.title.substring(0,30)}..." has been loaded.`,
+      title: "Extraction Successful",
+      description: `Data for "${data.title.substring(0,30)}..." has been loaded.`,
       variant: "default",
     });
   };
@@ -71,7 +74,7 @@ export default function HomePage() {
     setIsLoading(false);
     setError(errorMessage);
     toast({
-      title: "Scraping Error",
+      title: "Extraction Error",
       description: errorMessage,
       variant: "destructive",
     });
@@ -170,13 +173,30 @@ export default function HomePage() {
             <AlertDescription>{successMessage}</AlertDescription>
           </Alert>
         )}
+        
+        <Tabs defaultValue="url" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="url">Scrape from URL</TabsTrigger>
+                <TabsTrigger value="image">Scrape from Image</TabsTrigger>
+            </TabsList>
+            <TabsContent value="url">
+                <ScraperForm
+                    onScrapeStart={handleScrapeStart}
+                    onScrapeSuccess={(data) => handleScrapeSuccess(data, 'URL')}
+                    onScrapeError={handleScrapeError}
+                    isLoading={isLoading}
+                />
+            </TabsContent>
+            <TabsContent value="image">
+                 <ImageScraperForm
+                    onScrapeStart={handleScrapeStart}
+                    onScrapeSuccess={(data) => handleScrapeSuccess(data, 'Image Upload')}
+                    onScrapeError={handleScrapeError}
+                    isLoading={isLoading}
+                />
+            </TabsContent>
+        </Tabs>
 
-        <ScraperForm
-          onScrapeStart={handleScrapeStart}
-          onScrapeSuccess={handleScrapeSuccess}
-          onScrapeError={handleScrapeError}
-          isLoading={isLoading}
-        />
 
         {currentItemData && (
           <ScrapedItemEditor
