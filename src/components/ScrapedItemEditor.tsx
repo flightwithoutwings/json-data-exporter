@@ -138,27 +138,23 @@ export function ScrapedItemEditor({
               )}
           </div>
           <div className="flex flex-col space-y-4 min-h-[400px]">
-            <div className="flex-grow flex flex-col">
-              <Label htmlFor="description" className="inline-block mb-1">Description</Label>
-              <ScrollArea className="flex-1 rounded-md border border-border bg-background" style={{ display: 'flex' }}>
-                 <Textarea
-                  id="description"
-                  value={editableData.description || ''}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  className="h-full w-full flex-1 focus-visible:ring-primary resize-none border-0 focus-visible:ring-inset"
+             <div className="flex-grow flex flex-col">
+                <Label htmlFor="description" className="inline-block mb-1">Description</Label>
+                <Textarea
+                    id="description"
+                    value={editableData.description || ''}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    className="flex-1 w-full focus-visible:ring-primary resize-none"
                 />
-              </ScrollArea>
             </div>
             <div className="flex-grow flex flex-col">
-              <Label htmlFor="jsonPreview" className="inline-block mb-1">JSON Preview</Label>
-              <ScrollArea className="flex-1 rounded-md border border-border bg-muted/50" style={{ display: 'flex' }}>
-                 <Textarea
-                  id="jsonPreview"
-                  value={jsonPreview}
-                  readOnly
-                  className="h-full w-full flex-1 font-code text-xs resize-none border-0 bg-muted/50 text-muted-foreground focus-visible:ring-inset"
+                <Label htmlFor="jsonPreview" className="inline-block mb-1">JSON Preview</Label>
+                <Textarea
+                    id="jsonPreview"
+                    value={jsonPreview}
+                    readOnly
+                    className="flex-1 w-full font-code text-xs resize-none bg-muted/50 text-muted-foreground"
                 />
-              </ScrollArea>
             </div>
           </div>
         </div>
