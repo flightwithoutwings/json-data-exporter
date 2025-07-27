@@ -1,4 +1,5 @@
 
+
 // @ts-nocheck
 "use server";
 
@@ -231,6 +232,40 @@ function extractImageUrl(html: string): string {
   return ""; // Return empty if no suitable image is found
 }
 
+function parseHtmlContent(html: string, sourceIdentifier: string): { data?: ScrapedItemData; error?: string } {
+    const title = extractTextContent(html, 'productTitle') || extractTextContent(html, undefined, 'a-size-extra-large', 'h1') || "Title not found";
+    const author = extractAuthor(html);
+    const year = extractPublicationDate(html);
+    const description = extractDescription(html);
+    const imageUrl = extractImageUrl(html);
+    const printLength = extractPrintLength(html);
+    const fileSize = extractFileSize(html);
+    
+    if (title === "Title not found" && author === "Author not found" && year === "Publication date not found") {
+        const titleTagMatch = html.match(/<title>([^<]+)<\/title>/i);
+        const pageTitle = titleTagMatch && titleTagMatch[1] ? decodeHtmlEntities(titleTagMatch[1].trim()) : "Possible Error Page";
+        
+        if (html.toLowerCase().includes("captcha") || html.toLowerCase().includes("are you a robot") || pageTitle.toLowerCase().includes("captcha")) {
+             return { error: `Failed to parse content. The HTML appears to be a CAPTCHA or security check page.` };
+        }
+        return { error: `Failed to parse critical content (title, author, year). The website structure might be different, unsupported, or it's not a recognized product page. Page title: ${pageTitle}` };
+    }
+
+
+    return {
+      data: {
+        title,
+        author,
+        year,
+        description,
+        imageUrl: imageUrl || 'https://placehold.co/600x400.png', 
+        sourceUrl: sourceIdentifier,
+        printLength,
+        fileSize,
+      },
+    };
+}
+
 
 export async function scrapeUrl(url: string): Promise<{ data?: ScrapedItemData; error?: string }> {
   if (!url) {
@@ -257,39 +292,8 @@ export async function scrapeUrl(url: string): Promise<{ data?: ScrapedItemData; 
     }
 
     const html = await response.text();
+    return parseHtmlContent(html, url);
 
-    const title = extractTextContent(html, 'productTitle') || extractTextContent(html, undefined, 'a-size-extra-large', 'h1') || "Title not found";
-    const author = extractAuthor(html);
-    const year = extractPublicationDate(html);
-    const description = extractDescription(html);
-    const imageUrl = extractImageUrl(html);
-    const printLength = extractPrintLength(html);
-    const fileSize = extractFileSize(html);
-    
-    if (title === "Title not found" && author === "Author not found" && year === "Publication date not found") {
-        const titleTagMatch = html.match(/<title>([^<]+)<\/title>/i);
-        const pageTitle = titleTagMatch && titleTagMatch[1] ? decodeHtmlEntities(titleTagMatch[1].trim()) : "Possible Error Page";
-        
-        if (html.toLowerCase().includes("captcha") || html.toLowerCase().includes("are you a robot") || pageTitle.toLowerCase().includes("captcha")) {
-             return { error: "Failed to parse content. CAPTCHA or security check encountered on the target page. Try a different URL or check the page in your browser." };
-        }
-        // If still not found, it's likely parsing failed significantly or it's not a product page
-        return { error: `Failed to parse critical content (title, author, year). The website structure might be different, unsupported, or it's not a recognized product page. Page title: ${pageTitle}` };
-    }
-
-
-    return {
-      data: {
-        title,
-        author,
-        year,
-        description,
-        imageUrl: imageUrl || 'https://placehold.co/600x400.png', 
-        sourceUrl: url,
-        printLength,
-        fileSize,
-      },
-    };
   } catch (e: any) {
     // Check for specific fetch errors if possible, e.g., network errors
     if (e.message && e.message.toLowerCase().includes('failed to fetch')) {
@@ -299,4 +303,15 @@ export async function scrapeUrl(url: string): Promise<{ data?: ScrapedItemData; 
   }
 }
 
+export async function scrapeHtmlContent(htmlContent: string, fileName: string): Promise<{ data?: ScrapedItemData; error?: string }> {
+    if (!htmlContent) {
+        return { error: "HTML content is empty." };
+    }
+
+    try {
+        return parseHtmlContent(htmlContent, `File: ${fileName}`);
+    } catch (e: any) {
+        return { error: `An error occurred during HTML parsing: ${e.message}` };
+    }
+}
     

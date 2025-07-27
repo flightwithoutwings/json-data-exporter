@@ -1,9 +1,11 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
 import { AppHeader } from '@/components/AppHeader';
 import { ScraperForm } from '@/components/ScraperForm';
 import { ImageScraperForm } from '@/components/ImageScraperForm';
+import { HtmlScraperForm } from '@/components/HtmlScraperForm';
 import { ScrapedItemEditor } from '@/components/ScrapedItemEditor';
 import { CollectedItemsDisplay } from '@/components/CollectedItemsDisplay';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -175,9 +177,10 @@ export default function HomePage() {
         )}
         
         <Tabs defaultValue="url" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="url">Scrape from URL</TabsTrigger>
                 <TabsTrigger value="image">Scrape from Image</TabsTrigger>
+                <TabsTrigger value="file">Scrape from File</TabsTrigger>
             </TabsList>
             <TabsContent value="url">
                 <ScraperForm
@@ -191,6 +194,14 @@ export default function HomePage() {
                  <ImageScraperForm
                     onScrapeStart={handleScrapeStart}
                     onScrapeSuccess={(data) => handleScrapeSuccess(data, 'Image Upload')}
+                    onScrapeError={handleScrapeError}
+                    isLoading={isLoading}
+                />
+            </TabsContent>
+            <TabsContent value="file">
+                 <HtmlScraperForm
+                    onScrapeStart={handleScrapeStart}
+                    onScrapeSuccess={(data) => handleScrapeSuccess(data, 'File Upload')}
                     onScrapeError={handleScrapeError}
                     isLoading={isLoading}
                 />
