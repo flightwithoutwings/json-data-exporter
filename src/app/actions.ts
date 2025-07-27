@@ -296,10 +296,15 @@ function extractPrintLength(html: string): string {
     if (detailPrintLengthMatch && detailPrintLengthMatch[1]) {
         return decodeHtmlEntities(detailPrintLengthMatch[1].trim());
     }
-    // 3. More generic list item search for "Print length"
-    const genericPrintLengthMatch = html.match(/<li[^>]*>[\s\S]*?<span[^>]*>Print length<\/span>[\s\S]*?<span[^>]*>(\d+\s*pages)<\/span>[\s\S]*?<\/li>/i);
-    if (genericPrintLengthMatch && genericPrintLengthMatch[1]) {
-        return decodeHtmlEntities(genericPrintLengthMatch[1].trim());
+
+    // 3. Fallback for "Product Details" section.
+    const productDetailsMatch = html.match(/<div id=["']productDetails_feature_div["'][^>]*>([\s\S]*?)<\/div>/i);
+    if (productDetailsMatch && productDetailsMatch[1]) {
+        const productDetailsHtml = productDetailsMatch[1];
+        const detailMatch = productDetailsHtml.match(/(?:Print length|Hardcover|Paperback)\s*<\/th>\s*<td[^>]*>([\s\S]*?)<\/td>/i);
+        if (detailMatch && detailMatch[1]) {
+            return decodeHtmlEntities(detailMatch[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+        }
     }
     
     return "Print length not found";
@@ -307,15 +312,26 @@ function extractPrintLength(html: string): string {
 
 function extractFileSize(html: string): string {
   // 1. Try carousel structure first
-  const fileSizeMatch = html.match(/<div id=["']rpi-attribute-book_details-file_size["'][^>]*>[\s\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>\s*<span>([^<]+)<\/span>\s*<\/div>[\s\S]*?<\/div>/i);
-  if (fileSizeMatch && fileSizeMatch[1]) {
-    return decodeHtmlEntities(fileSizeMatch[1].trim());
+  const carouselFileSizeMatch = html.match(/<div id=["']rpi-attribute-book_details-file_size["'][^>]*>[\s\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>\s*<span>([^<]+)<\/span>\s*<\/div>[\s\S]*?<\/div>/i);
+  if (carouselFileSizeMatch && carouselFileSizeMatch[1]) {
+    return decodeHtmlEntities(carouselFileSizeMatch[1].trim());
   }
    // 2. Fallback for "File size" in detail bullets
   const detailFileSizeMatch = html.match(/<li><b>File size<\/b>\s*:\s*<span[^>]*>\s*([^<]+)\s*<\/span><\/li>/i);
   if (detailFileSizeMatch && detailFileSizeMatch[1]) {
     return decodeHtmlEntities(detailFileSizeMatch[1].trim());
   }
+
+  // 3. Fallback for "Product Details" section.
+  const productDetailsMatch = html.match(/<div id=["']productDetails_feature_div["'][^>]*>([\s\S]*?)<\/div>/i);
+  if (productDetailsMatch && productDetailsMatch[1]) {
+      const productDetailsHtml = productDetailsMatch[1];
+      const detailMatch = productDetailsHtml.match(/File size\s*<\/th>\s*<td[^>]*>([^<]+)<\/td>/i);
+      if (detailMatch && detailMatch[1]) {
+          return decodeHtmlEntities(detailMatch[1].trim());
+      }
+  }
+
   return "File size not found";
 }
 
