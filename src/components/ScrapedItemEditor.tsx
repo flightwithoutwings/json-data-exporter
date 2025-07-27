@@ -140,23 +140,23 @@ export function ScrapedItemEditor({
           <div className="flex flex-col space-y-4 min-h-[400px]">
             <div className="flex-grow flex flex-col">
               <Label htmlFor="description" className="inline-block mb-1">Description</Label>
-              <ScrollArea className="flex-1 rounded-md border border-border bg-background">
+              <ScrollArea className="flex-1 rounded-md border border-border bg-background" style={{ display: 'flex' }}>
                  <Textarea
                   id="description"
                   value={editableData.description || ''}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  className="h-full w-full min-h-[150px] focus-visible:ring-primary resize-none border-0 focus-visible:ring-inset"
+                  className="h-full w-full flex-1 focus-visible:ring-primary resize-none border-0 focus-visible:ring-inset"
                 />
               </ScrollArea>
             </div>
             <div className="flex-grow flex flex-col">
               <Label htmlFor="jsonPreview" className="inline-block mb-1">JSON Preview</Label>
-              <ScrollArea className="flex-1 rounded-md border border-border bg-muted/50">
+              <ScrollArea className="flex-1 rounded-md border border-border bg-muted/50" style={{ display: 'flex' }}>
                  <Textarea
                   id="jsonPreview"
                   value={jsonPreview}
                   readOnly
-                  className="h-full w-full min-h-[150px] font-code text-xs resize-none border-0 bg-muted/50 text-muted-foreground focus-visible:ring-inset"
+                  className="h-full w-full flex-1 font-code text-xs resize-none border-0 bg-muted/50 text-muted-foreground focus-visible:ring-inset"
                 />
               </ScrollArea>
             </div>
