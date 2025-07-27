@@ -137,27 +137,27 @@ export function ScrapedItemEditor({
                 </Dialog>
               )}
           </div>
-          <div className="space-y-4">
-            <div>
+          <div className="flex flex-col space-y-4">
+            <div className="flex flex-col flex-grow">
               <Label htmlFor="description">Description</Label>
-              <ScrollArea className="h-48 w-full rounded-md border border-border bg-background">
+              <ScrollArea className="flex-grow w-full rounded-md border border-border bg-background">
                 <Textarea
                   id="description"
                   value={editableData.description || ''}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  className="min-h-[180px] focus:ring-primary resize-none border-0"
+                  className="h-full min-h-[150px] focus:ring-primary resize-none border-0"
                   rows={8}
                 />
               </ScrollArea>
             </div>
-            <div>
+            <div className="flex flex-col flex-grow">
               <Label htmlFor="jsonPreview">JSON Preview</Label>
-              <ScrollArea className="h-48 w-full rounded-md border border-border bg-muted/50">
+              <ScrollArea className="flex-grow w-full rounded-md border border-border bg-muted/50">
                 <Textarea
                   id="jsonPreview"
                   value={jsonPreview}
                   readOnly
-                  className="min-h-[180px] font-code text-xs resize-none border-0 bg-muted/50 text-muted-foreground"
+                  className="h-full min-h-[150px] font-code text-xs resize-none border-0 bg-muted/50 text-muted-foreground"
                   rows={8}
                 />
               </ScrollArea>
