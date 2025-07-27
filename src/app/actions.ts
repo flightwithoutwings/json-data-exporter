@@ -317,7 +317,7 @@ function extractFileSize(html: string): string {
     return decodeHtmlEntities(carouselFileSizeMatch[1].trim());
   }
    // 2. Fallback for "File size" in detail bullets. This regex is more flexible.
-  const detailFileSizeMatch = html.match(/<li>\s*<span class="a-list-item">\s*(?:<b>)?\s*File size\s*(?:<\/b>)?\s*:\s*<span>([^<]+)<\/span>\s*<\/span>\s*<\/li>/i);
+  const detailFileSizeMatch = html.match(/<li>\s*<span class="a-list-item">\s*<b>File size<\/b>\s*:\s*([^<]+)\s*<\/span>\s*<\/li>/i);
   if (detailFileSizeMatch && detailFileSizeMatch[1]) {
     return decodeHtmlEntities(detailFileSizeMatch[1].trim());
   }
