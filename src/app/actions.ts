@@ -283,7 +283,7 @@ function extractPublicationDate(html: string): string {
 
 function extractPrintLength(html: string): string {
     // 1. Try flexible carousel structure first, looking for any id ending in `_pages`.
-    const printLengthMatch = html.match(/<div id=["']rpi-attribute-book_details-[^"']*_pages["'][^>]*>[\s\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>[\s\S]*?<span>([^<]+)<\/span>/i);
+    const printLengthMatch = html.match(/<div id=["']rpi-attribute-book_details-[^"']*_pages["'][^>]*>[\s\\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>[\s\\S]*?<span>([^<]+)<\/span>/i);
     if (printLengthMatch && printLengthMatch[1]) {
         let lengthText = decodeHtmlEntities(printLengthMatch[1].trim());
         if (/^\d+$/.test(lengthText)) {
@@ -316,8 +316,8 @@ function extractFileSize(html: string): string {
   if (carouselFileSizeMatch && carouselFileSizeMatch[1]) {
     return decodeHtmlEntities(carouselFileSizeMatch[1].trim());
   }
-   // 2. Fallback for "File size" in detail bullets
-  const detailFileSizeMatch = html.match(/<li><b>File size<\/b>\s*:\s*<span[^>]*>\s*([^<]+)\s*<\/span><\/li>/i);
+   // 2. Fallback for "File size" in detail bullets. This regex is more flexible.
+  const detailFileSizeMatch = html.match(/<li>\s*<span class="a-list-item">\s*(?:<b>)?\s*File size\s*(?:<\/b>)?\s*:\s*<span>([^<]+)<\/span>\s*<\/span>\s*<\/li>/i);
   if (detailFileSizeMatch && detailFileSizeMatch[1]) {
     return decodeHtmlEntities(detailFileSizeMatch[1].trim());
   }
