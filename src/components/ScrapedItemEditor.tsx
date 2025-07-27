@@ -79,27 +79,27 @@ export function ScrapedItemEditor({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title" className="inline-block mb-1">Title</Label>
               <Input id="title" value={editableData.title || ''} onChange={(e) => handleInputChange('title', e.target.value)} className="bg-background border-border focus:ring-primary" />
             </div>
             <div>
-              <Label htmlFor="author">Author</Label>
+              <Label htmlFor="author" className="inline-block mb-1">Author</Label>
               <Input id="author" value={editableData.author || ''} onChange={(e) => handleInputChange('author', e.target.value)} className="bg-background border-border focus:ring-primary" />
             </div>
             <div>
-              <Label htmlFor="year">Publication Date/Year</Label>
+              <Label htmlFor="year" className="inline-block mb-1">Publication Date/Year</Label>
               <Input id="year" value={editableData.year || ''} onChange={(e) => handleInputChange('year', e.target.value)} className="bg-background border-border focus:ring-primary" />
             </div>
             <div>
-              <Label htmlFor="imageUrl">Image URL</Label>
+              <Label htmlFor="imageUrl" className="inline-block mb-1">Image URL</Label>
               <Input id="imageUrl" value={editableData.imageUrl || ''} onChange={(e) => handleInputChange('imageUrl', e.target.value)} className="bg-background border-border focus:ring-primary" />
             </div>
              <div>
-              <Label htmlFor="printLength">Print Length</Label>
+              <Label htmlFor="printLength" className="inline-block mb-1">Print Length</Label>
               <Input id="printLength" value={editableData.printLength || ''} onChange={(e) => handleInputChange('printLength', e.target.value)} className="bg-background border-border focus:ring-primary" />
             </div>
             <div>
-              <Label htmlFor="fileSize">File Size</Label>
+              <Label htmlFor="fileSize" className="inline-block mb-1">File Size</Label>
               <Input id="fileSize" value={editableData.fileSize || ''} onChange={(e) => handleInputChange('fileSize', e.target.value)} className="bg-background border-border focus:ring-primary" />
             </div>
              {editableData.imageUrl && (
@@ -138,34 +138,32 @@ export function ScrapedItemEditor({
               )}
           </div>
           <div className="flex flex-col space-y-4">
-            <div className="flex flex-col flex-grow">
-              <Label htmlFor="description">Description</Label>
-              <ScrollArea className="flex-grow w-full rounded-md border border-border bg-background">
-                <Textarea
+            <div className="flex-grow flex flex-col">
+              <Label htmlFor="description" className="inline-block mb-1">Description</Label>
+              <ScrollArea className="flex-grow rounded-md border border-border bg-background">
+                 <Textarea
                   id="description"
                   value={editableData.description || ''}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  className="h-full min-h-[150px] focus:ring-primary resize-none border-0"
-                  rows={8}
+                  className="h-full w-full min-h-[150px] focus-visible:ring-primary resize-none border-0 focus-visible:ring-inset"
                 />
               </ScrollArea>
             </div>
-            <div className="flex flex-col flex-grow">
-              <Label htmlFor="jsonPreview">JSON Preview</Label>
-              <ScrollArea className="flex-grow w-full rounded-md border border-border bg-muted/50">
-                <Textarea
+            <div className="flex-grow flex flex-col">
+              <Label htmlFor="jsonPreview" className="inline-block mb-1">JSON Preview</Label>
+              <ScrollArea className="flex-grow rounded-md border border-border bg-muted/50">
+                 <Textarea
                   id="jsonPreview"
                   value={jsonPreview}
                   readOnly
-                  className="h-full min-h-[150px] font-code text-xs resize-none border-0 bg-muted/50 text-muted-foreground"
-                  rows={8}
+                  className="h-full w-full min-h-[150px] font-code text-xs resize-none border-0 bg-muted/50 text-muted-foreground focus-visible:ring-inset"
                 />
               </ScrollArea>
             </div>
           </div>
         </div>
         <div>
-            <Label htmlFor="sourceUrl">Source URL</Label>
+            <Label htmlFor="sourceUrl" className="inline-block mb-1">Source URL</Label>
             <Input id="sourceUrl" value={editableData.sourceUrl} readOnly className="bg-muted/50 border-border text-muted-foreground" />
         </div>
       </CardContent>
