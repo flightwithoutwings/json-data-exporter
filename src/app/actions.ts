@@ -13,14 +13,179 @@ import type { ScrapedItemData } from '@/types';
 // Helper function to decode HTML entities
 function decodeHtmlEntities(text: string): string {
   if (typeof text !== 'string') return '';
-  return text.replace(/&amp;/g, '&')
-             .replace(/&lt;/g, '<')
-             .replace(/&gt;/g, '>')
-             .replace(/&quot;/g, '"')
-             .replace(/&#039;/g, "'")
-             .replace(/&#39;/g, "'")
-             .replace(/&nbsp;/g, " ")
-             .replace(/&#160;/g, " ");
+  // Expanded list of HTML entities
+  const entities: {[key: string]: string} = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#039;': "'",
+    '&#39;': "'",
+    '&apos;': "'",
+    '&nbsp;': ' ',
+    '&#160;': ' ',
+    '&iexcl;': '¡',
+    '&cent;': '¢',
+    '&pound;': '£',
+    '&curren;': '¤',
+    '&yen;': '¥',
+    '&brvbar;': '¦',
+    '&sect;': '§',
+    '&uml;': '¨',
+    '&copy;': '©',
+    '&ordf;': 'ª',
+    '&laquo;': '«',
+    '&not;': '¬',
+    '&shy;': '­',
+    '&reg;': '®',
+    '&macr;': '¯',
+    '&deg;': '°',
+    '&plusmn;': '±',
+    '&sup2;': '²',
+    '&sup3;': '³',
+    '&acute;': '´',
+    '&micro;': 'µ',
+    '&para;': '¶',
+    '&middot;': '·',
+    '&cedil;': '¸',
+    '&sup1;': '¹',
+    '&ordm;': 'º',
+    '&raquo;': '»',
+    '&frac14;': '¼',
+    '&frac12;': '½',
+    '&frac34;': '¾',
+    '&iquest;': '¿',
+    '&Agrave;': 'À',
+    '&Aacute;': 'Á',
+    '&Acirc;': 'Â',
+    '&Atilde;': 'Ã',
+    '&Auml;': 'Ä',
+    '&Aring;': 'Å',
+    '&AElig;': 'Æ',
+    '&Ccedil;': 'Ç',
+    '&Egrave;': 'È',
+    '&Eacute;': 'É',
+    '&Ecirc;': 'Ê',
+    '&Euml;': 'Ë',
+    '&Igrave;': 'Ì',
+    '&Iacute;': 'Í',
+    '&Icirc;': 'Î',
+    '&Iuml;': 'Ï',
+    '&ETH;': 'Ð',
+    '&Ntilde;': 'Ñ',
+    '&Ograve;': 'Ò',
+    '&Oacute;': 'Ó',
+    '&Ocirc;': 'Ô',
+    '&Otilde;': 'Õ',
+    '&Ouml;': 'Ö',
+    '&times;': '×',
+    '&Oslash;': 'Ø',
+    '&Ugrave;': 'Ù',
+    '&Uacute;': 'Ú',
+    '&Ucirc;': 'Û',
+    '&Uuml;': 'Ü',
+    '&Yacute;': 'Ý',
+    '&THORN;': 'Þ',
+    '&szlig;': 'ß',
+    '&agrave;': 'à',
+    '&aacute;': 'á',
+    '&acirc;': 'â',
+    '&atilde;': 'ã',
+    '&auml;': 'ä',
+    '&aring;': 'å',
+    '&aelig;': 'æ',
+    '&ccedil;': 'ç',
+    '&egrave;': 'è',
+    '&eacute;': 'é',
+    '&ecirc;': 'ê',
+    '&euml;': 'ë',
+    '&igrave;': 'ì',
+    '&iacute;': 'í',
+    '&icirc;': 'î',
+    '&iuml;': 'ï',
+    '&eth;': 'ð',
+    '&ntilde;': 'ñ',
+    '&ograve;': 'ò',
+    '&oacute;': 'ó',
+    '&ocirc;': 'ô',
+    '&otilde;': 'õ',
+    '&ouml;': 'ö',
+    '&divide;': '÷',
+    '&oslash;': 'ø',
+    '&ugrave;': 'ù',
+    '&uacute;': 'ú',
+    '&ucirc;': 'û',
+    '&uuml;': 'ü',
+    '&yacute;': 'ý',
+    '&thorn;': 'þ',
+    '&yuml;': 'ÿ',
+    '&ndash;': '–',
+    '&mdash;': '—',
+    '&lsquo;': '‘',
+    '&rsquo;': '’',
+    '&sbquo;': '‚',
+    '&ldquo;': '“',
+    '&rdquo;': '”',
+    '&bdquo;': '„',
+    '&dagger;': '†',
+    '&Dagger;': '‡',
+    '&bull;': '•',
+    '&hellip;': '…',
+    '&permil;': '‰',
+    '&prime;': '′',
+    '&Prime;': '″',
+    '&lsaquo;': '‹',
+    '&rsaquo;': '›',
+    '&oline;': '‾',
+    '&frasl;': '⁄',
+    '&euro;': '€',
+    '&trade;': '™',
+    '&larr;': '←',
+    '&uarr;': '↑',
+    '&rarr;': '→',
+    '&darr;': '↓',
+    '&harr;': '↔',
+    '&crarr;': '↵',
+    '&forall;': '∀',
+    '&part;': '∂',
+    '&exist;': '∃',
+    '&empty;': '∅',
+    '&nabla;': '∇',
+    '&isin;': '∈',
+    '&notin;': '∉',
+    '&ni;': '∋',
+    '&prod;': '∏',
+    '&sum;': '∑',
+    '&minus;': '−',
+    '&lowast;': '∗',
+    '&radic;': '√',
+    '&prop;': '∝',
+    '&infin;': '∞',
+    '&ang;': '∠',
+    '&and;': '∧',
+    '&or;': '∨',
+    '&cap;': '∩',
+    '&cup;': '∪',
+    '&int;': '∫',
+    '&there4;': '∴',
+    '&sim;': '∼',
+    '&cong;': '≅',
+    '&asymp;': '≈',
+    '&ne;': '≠',
+    '&equiv;': '≡',
+    '&le;': '≤',
+    '&ge;': '≥',
+    '&sub;': '⊂',
+    '&sup;': '⊃',
+    '&nsub;': '⊄',
+    '&sube;': '⊆',
+    '&supe;': '⊇',
+    '&oplus;': '⊕',
+    '&otimes;': '⊗',
+    '&perp;': '⊥',
+    '&sdot;': '⋅',
+  };
+  return text.replace(/(&[a-z#0-9]+;)/g, (entity) => entities[entity] || entity);
 }
 
 // Helper function to extract text content between tags, removing inner tags
@@ -117,22 +282,27 @@ function extractPublicationDate(html: string): string {
 }
 
 function extractPrintLength(html: string): string {
-  // 1. Try carousel structure first for ebook_pages or paperback_pages
-  const printLengthMatch = html.match(/<div id=["']rpi-attribute-book_details-(?:ebook_pages|paperback_pages)["'][^>]*>[\s\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>[\s\S]*?<span>([^<]+)<\/span>/i);
-  if (printLengthMatch && printLengthMatch[1]) {
-    // Ensure "pages" is appended if just a number
-    let lengthText = decodeHtmlEntities(printLengthMatch[1].trim());
-    if (/^\d+$/.test(lengthText)) {
-        lengthText += " pages";
+    // 1. Try flexible carousel structure first, looking for any id ending in `_pages`.
+    const printLengthMatch = html.match(/<div id=["']rpi-attribute-book_details-[^"']*_pages["'][^>]*>[\s\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>[\s\S]*?<span>([^<]+)<\/span>/i);
+    if (printLengthMatch && printLengthMatch[1]) {
+        let lengthText = decodeHtmlEntities(printLengthMatch[1].trim());
+        if (/^\d+$/.test(lengthText)) {
+            lengthText += " pages";
+        }
+        return lengthText;
     }
-    return lengthText;
-  }
-  // 2. Fallback for "Print length" in detail bullets
-  const detailPrintLengthMatch = html.match(/<li><b>Print length<\/b>\s*:\s*<span[^>]*>\s*([^<]+)\s*<\/span><\/li>/i);
-  if (detailPrintLengthMatch && detailPrintLengthMatch[1]) {
-    return decodeHtmlEntities(detailPrintLengthMatch[1].trim());
-  }
-  return "Print length not found";
+    // 2. Fallback for "Print length" in detail bullets. This is a very common pattern.
+    const detailPrintLengthMatch = html.match(/<li><b>Print length<\/b>\s*:\s*<span[^>]*>\s*([^<]+)\s*<\/span><\/li>/i);
+    if (detailPrintLengthMatch && detailPrintLengthMatch[1]) {
+        return decodeHtmlEntities(detailPrintLengthMatch[1].trim());
+    }
+    // 3. More generic list item search for "Print length"
+    const genericPrintLengthMatch = html.match(/<li[^>]*>[\s\S]*?<span[^>]*>Print length<\/span>[\s\S]*?<span[^>]*>(\d+\s*pages)<\/span>[\s\S]*?<\/li>/i);
+    if (genericPrintLengthMatch && genericPrintLengthMatch[1]) {
+        return decodeHtmlEntities(genericPrintLengthMatch[1].trim());
+    }
+    
+    return "Print length not found";
 }
 
 function extractFileSize(html: string): string {
@@ -153,7 +323,7 @@ function extractFileSize(html: string): string {
 function extractDescription(html: string): string {
   let descriptionHtml = '';
   // 1. Try #bookDescription_feature_div first
-  let descMatch = html.match(/<div id=["']bookDescription_feature_div["'][^>]*>([\s\S]*?)<div class=["']a-expander-header/i);
+  let descMatch = html.match(/<div id=["']bookDescription_feature_div["'][^>]*>([\s\S]*?)(?:<div class=["']a-expander-header|<div id=["']outer_postBodyPS")/i);
   if (descMatch && descMatch[1]) {
       descriptionHtml = descMatch[1];
   } else {
@@ -173,7 +343,7 @@ function extractDescription(html: string): string {
         descriptionHtml
             .replace(/<br\s*\/?>/gi, '\n')
             .replace(/<p[^>]*>/gi, '\n\n')
-            .replace(/<\/?(?:b|i|em|strong|span)[^>]*>/gi, '')
+            .replace(/<\/?(h[1-6]|b|i|em|strong|span|blockquote)[^>]*>/gi, '') // Remove more formatting tags
             .replace(/<[^>]+>/g, ' ') // remove any leftover tags
             .replace(/\s+/g, ' ') // collapse whitespace
             .trim()
