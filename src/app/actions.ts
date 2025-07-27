@@ -322,7 +322,7 @@ function extractFileSize(html: string): string {
     return decodeHtmlEntities(detailFileSizeMatch[1].trim());
   }
 
-  // 3. Fallback for "Product Details" section.
+  // 3. Fallback for "Product Details" section (table format).
   const productDetailsMatch = html.match(/<div id=["']productDetails_feature_div["'][^>]*>([\s\S]*?)<\/div>/i);
   if (productDetailsMatch && productDetailsMatch[1]) {
       const productDetailsHtml = productDetailsMatch[1];
@@ -331,6 +331,13 @@ function extractFileSize(html: string): string {
           return decodeHtmlEntities(detailMatch[1].trim());
       }
   }
+
+  // 4. Fallback for generic text format: "File size" followed by value in the next span
+  const genericFileSizeMatch = html.match(/<span[^>]*>\s*File size\s*<\/span>\s*<span[^>]*>([^<]+)<\/span>/i);
+  if (genericFileSizeMatch && genericFileSizeMatch[1]) {
+      return decodeHtmlEntities(genericFileSizeMatch[1].trim());
+  }
+
 
   return "File size not found";
 }
