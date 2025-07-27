@@ -137,10 +137,10 @@ export function ScrapedItemEditor({
                 </Dialog>
               )}
           </div>
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-4 min-h-[400px]">
             <div className="flex-grow flex flex-col">
               <Label htmlFor="description" className="inline-block mb-1">Description</Label>
-              <ScrollArea className="flex-grow rounded-md border border-border bg-background">
+              <ScrollArea className="flex-1 rounded-md border border-border bg-background">
                  <Textarea
                   id="description"
                   value={editableData.description || ''}
@@ -151,7 +151,7 @@ export function ScrapedItemEditor({
             </div>
             <div className="flex-grow flex flex-col">
               <Label htmlFor="jsonPreview" className="inline-block mb-1">JSON Preview</Label>
-              <ScrollArea className="flex-grow rounded-md border border-border bg-muted/50">
+              <ScrollArea className="flex-1 rounded-md border border-border bg-muted/50">
                  <Textarea
                   id="jsonPreview"
                   value={jsonPreview}
