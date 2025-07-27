@@ -18,7 +18,9 @@ function decodeHtmlEntities(text: string): string {
              .replace(/&gt;/g, '>')
              .replace(/&quot;/g, '"')
              .replace(/&#039;/g, "'")
-             .replace(/&nbsp;/g, " ");
+             .replace(/&#39;/g, "'")
+             .replace(/&nbsp;/g, " ")
+             .replace(/&#160;/g, " ");
 }
 
 // Helper function to extract text content between tags, removing inner tags
@@ -115,8 +117,8 @@ function extractPublicationDate(html: string): string {
 }
 
 function extractPrintLength(html: string): string {
-  // Try carousel structure first for ebook_pages or paperback_pages
-  const printLengthMatch = html.match(/<div id=["']rpi-attribute-book_details-(?:ebook_pages|paperback_pages)["'][^>]*>[\s\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>\s*(?:<a[^>]*>)?\s*<span>([^<]+)<\/span>/i);
+  // 1. Try carousel structure first for ebook_pages or paperback_pages
+  const printLengthMatch = html.match(/<div id=["']rpi-attribute-book_details-(?:ebook_pages|paperback_pages)["'][^>]*>[\s\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>[\s\S]*?<span>([^<]+)<\/span>/i);
   if (printLengthMatch && printLengthMatch[1]) {
     // Ensure "pages" is appended if just a number
     let lengthText = decodeHtmlEntities(printLengthMatch[1].trim());
@@ -125,7 +127,7 @@ function extractPrintLength(html: string): string {
     }
     return lengthText;
   }
-  // Fallback for "Print length" in detail bullets
+  // 2. Fallback for "Print length" in detail bullets
   const detailPrintLengthMatch = html.match(/<li><b>Print length<\/b>\s*:\s*<span[^>]*>\s*([^<]+)\s*<\/span><\/li>/i);
   if (detailPrintLengthMatch && detailPrintLengthMatch[1]) {
     return decodeHtmlEntities(detailPrintLengthMatch[1].trim());
@@ -134,12 +136,12 @@ function extractPrintLength(html: string): string {
 }
 
 function extractFileSize(html: string): string {
-  // Try carousel structure first
+  // 1. Try carousel structure first
   const fileSizeMatch = html.match(/<div id=["']rpi-attribute-book_details-file_size["'][^>]*>[\s\S]*?<div class=["'][^"']*rpi-attribute-value[^"']*["'][^>]*>\s*<span>([^<]+)<\/span>\s*<\/div>[\s\S]*?<\/div>/i);
   if (fileSizeMatch && fileSizeMatch[1]) {
     return decodeHtmlEntities(fileSizeMatch[1].trim());
   }
-   // Fallback for "File size" in detail bullets
+   // 2. Fallback for "File size" in detail bullets
   const detailFileSizeMatch = html.match(/<li><b>File size<\/b>\s*:\s*<span[^>]*>\s*([^<]+)\s*<\/span><\/li>/i);
   if (detailFileSizeMatch && detailFileSizeMatch[1]) {
     return decodeHtmlEntities(detailFileSizeMatch[1].trim());
@@ -149,29 +151,36 @@ function extractFileSize(html: string): string {
 
 
 function extractDescription(html: string): string {
-  // Try #bookDescription_feature_div first
+  let descriptionHtml = '';
+  // 1. Try #bookDescription_feature_div first
   let descMatch = html.match(/<div id=["']bookDescription_feature_div["'][^>]*>([\s\S]*?)<div class=["']a-expander-header/i);
   if (descMatch && descMatch[1]) {
-    const descContent = descMatch[1];
-    let innerDescMatch = descContent.match(/<noscript>[\s\S]*?<div[^>]*>([\s\S]*?)<\/div>[\s\S]*?<\/noscript>/i);
-    if (innerDescMatch && innerDescMatch[1]) {
-       return decodeHtmlEntities(innerDescMatch[1].replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
-    }
-    // Try to get content from within a data-a-expander-name="book_description_expander"
-    innerDescMatch = descContent.match(/<div[^>]*data-a-expander-name=["']book_description_expander["'][^>]*>([\s\S]*?)<\/div>/i);
-     if (innerDescMatch && innerDescMatch[1]) {
-       // Further clean up common amazon description formatting
-       return decodeHtmlEntities(innerDescMatch[1].replace(/<br\s*\/?>/gi, '\n').replace(/<p[^>]*>/gi, '\n\n').replace(/<\/?(?:b|i|em|strong|span)[^>]*>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+      descriptionHtml = descMatch[1];
+  } else {
+    // 2. Fallback for a simpler description structure within product-description-full-width
+    descMatch = html.match(/<div class=["'][^"']*product-description-full-width[^"']*["'][^>]*>([\s\S]*?)<\/div>/i);
+    if(descMatch && descMatch[1]) {
+        descriptionHtml = descMatch[1];
     }
   }
-  
-  // Fallback for a simpler description structure within product-description-full-width
-  descMatch = html.match(/<div class=["'][^"']*product-description-full-width[^"']*["'][^>]*>([\s\S]*?)<\/div>/i);
-  if (descMatch && descMatch[1]) {
-    return decodeHtmlEntities(descMatch[1].replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+
+  if (descriptionHtml) {
+    // Clean up common amazon description formatting
+    // Replace <br> and <p> with newlines for paragraph breaks
+    // Remove common formatting tags like b, i, em, strong, span
+    // Then remove any remaining HTML tags and decode entities
+    return decodeHtmlEntities(
+        descriptionHtml
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<p[^>]*>/gi, '\n\n')
+            .replace(/<\/?(?:b|i|em|strong|span)[^>]*>/gi, '')
+            .replace(/<[^>]+>/g, ' ') // remove any leftover tags
+            .replace(/\s+/g, ' ') // collapse whitespace
+            .trim()
+    );
   }
   
-  // Fallback to OpenGraph description meta tag
+  // 3. Fallback to OpenGraph description meta tag if no description block found
   const ogDescMatch = html.match(/<meta property=["']og:description["'] content=["'](.*?)["']/i);
   if (ogDescMatch && ogDescMatch[1]) {
     return decodeHtmlEntities(ogDescMatch[1].trim());
