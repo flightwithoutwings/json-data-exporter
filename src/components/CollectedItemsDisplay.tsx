@@ -8,7 +8,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableCaption
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -90,9 +89,6 @@ export function CollectedItemsDisplay({ items, onEditItem, onRemoveItem, onExpor
               ))}
             </TableBody>
           </Table>
-          {items.length === 0 && (
-             <TableCaption>No items collected yet.</TableCaption>
-          )}
         </ScrollArea>
       </CardContent>
       {items.length > 0 && (
