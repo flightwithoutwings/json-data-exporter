@@ -161,7 +161,7 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
                         <X className="h-5 w-5" />
                     </Button>
                 </div>
-                <ScrollArea className="h-32 w-full">
+                <ScrollArea className="h-60 w-full">
                     <div className="space-y-2 p-2">
                     {htmlFiles.map((file, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-md bg-muted/50 group">

@@ -172,7 +172,7 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
                         <X className="h-5 w-5" />
                     </Button>
                 </div>
-                <ScrollArea className="h-40 w-full">
+                <ScrollArea className="h-60 w-full">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2">
                     {imageFiles.map((file, i) => (
                         <div key={i} className="relative aspect-[2/3] rounded-md overflow-hidden group">
