@@ -74,6 +74,13 @@ export default function HomePage() {
       description: `Data for "${data.title.substring(0,30)}..." has been loaded.`,
       variant: "default",
     });
+    // Clear file inputs upon successful extraction
+    if (source === 'Image Upload') {
+        imageScraperRef.current?.clear();
+    }
+    if (source === 'File Upload') {
+        htmlScraperRef.current?.clear();
+    }
   };
 
   const handleScrapeError = (errorMessage: string) => {
@@ -118,10 +125,6 @@ export default function HomePage() {
     setCurrentItemData(null);
     setOriginalScrapedData(null);
     clearMessages();
-    
-    // Clear file inputs
-    imageScraperRef.current?.clear();
-    htmlScraperRef.current?.clear();
   };
 
   const handleDownloadCurrentItem = (itemToDownload: ScrapedItemData) => {
