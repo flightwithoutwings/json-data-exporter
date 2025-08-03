@@ -7,45 +7,53 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Upload, Image as ImageIcon, Loader2, X, AlertCircle } from 'lucide-react';
 import type { ScrapedItemData } from '@/types';
 import { extractBookInfoFromImage } from '@/ai/flows/extract-book-info-flow';
 
 interface ImageScraperFormProps {
   onScrapeStart: () => void;
-  onScrapeSuccess: (data: ScrapedItemData) => void;
+  onScrapeSuccess: (data: ScrapedItemData, source: string) => void;
   onScrapeError: (error: string) => void;
+  onBatchComplete: (successCount: number, errorCount: number, source: string) => void;
   isLoading: boolean;
 }
 
+// Helper to read file as data URI
+const toDataURL = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFormProps>(
-  ({ onScrapeStart, onScrapeSuccess, onScrapeError, isLoading }, ref) => {
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [imageFile, setImageFile] = useState<File | null>(null);
+  ({ onScrapeStart, onScrapeSuccess, onScrapeError, onBatchComplete, isLoading }, ref) => {
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [fileError, setFileError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        if (file.size > 4 * 1024 * 1024) { // 4MB limit
-          setFileError("File is too large. Please select an image under 4MB.");
-          return;
+      const files = event.target.files;
+      if (files) {
+        const fileList = Array.from(files);
+        for(const file of fileList) {
+          if (file.size > 4 * 1024 * 1024) { // 4MB limit
+            setFileError(`File "${file.name}" is too large. Please select images under 4MB.`);
+            return;
+          }
         }
         setFileError(null);
-        setImageFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        setImageFiles(fileList);
       }
     };
     
-    const handleClearImage = () => {
-        setImageFile(null);
-        setImagePreview(null);
+    const handleClearImages = () => {
+        setImageFiles([]);
         setFileError(null);
         if(fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -53,30 +61,39 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
     }
 
     useImperativeHandle(ref, () => ({
-      clear: handleClearImage,
+      clear: handleClearImages,
     }));
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!imageFile || !imagePreview) {
-        onScrapeError("Please select an image file first.");
+      if (imageFiles.length === 0) {
+        onScrapeError("Please select one or more image files first.");
         return;
       }
 
       onScrapeStart();
       startTransition(async () => {
-        try {
-          const result = await extractBookInfoFromImage({ photoDataUri: imagePreview });
-          onScrapeSuccess({
-              ...result,
-              imageUrl: imagePreview,
-              sourceUrl: `Image Upload: ${imageFile.name}`,
-              printLength: '', // Not available from image
-              fileSize: '', // Not available from image
-          });
-        } catch(e: any) {
-          onScrapeError(e.message || "An unknown error occurred while analyzing the image.");
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const file of imageFiles) {
+           try {
+              const dataUri = await toDataURL(file);
+              const result = await extractBookInfoFromImage({ photoDataUri: dataUri });
+              onScrapeSuccess({
+                  ...result,
+                  imageUrl: dataUri,
+                  sourceUrl: `Image Upload: ${file.name}`,
+                  printLength: '', // Not available from image
+                  fileSize: '', // Not available from image
+              }, `Image: ${file.name}`);
+              successCount++;
+            } catch(e: any) {
+              onScrapeError(e.message || `An unknown error occurred while analyzing ${file.name}.`);
+              errorCount++;
+            }
         }
+        onBatchComplete(successCount, errorCount, 'Image Upload(s)');
       });
     };
 
@@ -85,9 +102,9 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
     return (
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="font-headline text-xl">Scrape from Image</CardTitle>
+          <CardTitle className="font-headline text-xl">Scrape from Image(s)</CardTitle>
           <CardDescription>
-            Upload an image of a book cover. The AI will attempt to extract its details.
+            Upload one or more book cover images. The AI will attempt to extract details for each.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -100,14 +117,15 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
               ref={fileInputRef}
               className="hidden"
               disabled={currentIsLoading}
+              multiple
             />
            
-            {!imagePreview && (
+            {imageFiles.length === 0 && (
                <label htmlFor="imageUpload" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted/80 transition-colors">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <ImageIcon className="w-10 h-10 mb-3 text-muted-foreground" />
                       <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                      <p className="text-xs text-muted-foreground">PNG, JPG, or WEBP (MAX. 4MB)</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, or WEBP (MAX. 4MB each)</p>
                   </div>
               </label>
             )}
@@ -120,35 +138,45 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
                 </Alert>
             )}
 
-            {imagePreview && !fileError && (
-              <div className="relative w-full max-w-sm mx-auto p-2 border-2 border-dashed rounded-lg">
-                <Image
-                  src={imagePreview}
-                  alt="Selected preview"
-                  width={300}
-                  height={450}
-                  className="object-contain w-full h-auto max-h-64 rounded-md"
-                />
-                <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 h-7 w-7 rounded-full"
-                    onClick={handleClearImage}
-                    type="button"
-                    aria-label="Remove image"
-                    >
-                    <X className="h-4 w-4" />
-                </Button>
+            {imageFiles.length > 0 && !fileError && (
+              <div className="relative w-full p-2 border-2 border-dashed rounded-lg">
+                 <div className="flex justify-between items-center mb-2 px-2">
+                    <p className="text-sm font-medium">{imageFiles.length} image(s) selected</p>
+                     <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={handleClearImages}
+                        type="button"
+                        aria-label="Remove all files"
+                        >
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
+                <ScrollArea className="h-40 w-full">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2">
+                    {imageFiles.map((file, i) => (
+                        <div key={i} className="relative aspect-[2/3] rounded-md overflow-hidden">
+                           <Image
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview of ${file.name}`}
+                            fill
+                            className="object-cover"
+                            />
+                        </div>
+                    ))}
+                    </div>
+                </ScrollArea>
               </div>
             )}
 
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={!imagePreview || !!fileError || currentIsLoading}>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={imageFiles.length === 0 || !!fileError || currentIsLoading}>
               {currentIsLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Upload className="mr-2 h-4 w-4" />
               )}
-              {currentIsLoading ? 'Analyzing Image...' : 'Extract Data from Image'}
+              {currentIsLoading ? `Analyzing ${imageFiles.length} Image(s)...` : `Extract Data from ${imageFiles.length} Image(s)`}
             </Button>
           </form>
         </CardContent>
