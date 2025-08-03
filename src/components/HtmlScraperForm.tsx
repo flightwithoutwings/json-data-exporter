@@ -27,17 +27,32 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
-      if (files) {
-        const fileList = Array.from(files);
-        for(const file of fileList) {
+      const newFiles = event.target.files;
+      if (newFiles) {
+        let allValid = true;
+        const newFileList = Array.from(newFiles);
+
+        for(const file of newFileList) {
           if (file.size > 10 * 1024 * 1024) { // 10MB limit
             setFileError(`File "${file.name}" is too large. Please select files under 10MB.`);
-            return;
+            allValid = false;
+            break;
           }
         }
-        setFileError(null);
-        setHtmlFiles(fileList);
+        
+        if (allValid) {
+            setFileError(null);
+            // Append new files, avoiding duplicates based on name and size
+            setHtmlFiles(prevFiles => {
+                const existingFiles = new Set(prevFiles.map(f => `${f.name}-${f.size}`));
+                const filteredNewFiles = newFileList.filter(f => !existingFiles.has(`${f.name}-${f.size}`));
+                return [...prevFiles, ...filteredNewFiles];
+            });
+        }
+      }
+      // Reset the file input to allow selecting the same file again if removed
+      if(fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
     };
     
@@ -48,6 +63,10 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
             fileInputRef.current.value = "";
         }
     }
+    
+    const handleRemoveFile = (indexToRemove: number) => {
+        setHtmlFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToRemove));
+    };
 
     useImperativeHandle(ref, () => ({
       clear: handleClearFiles,
@@ -145,7 +164,7 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
                 <ScrollArea className="h-32 w-full">
                     <div className="space-y-2 p-2">
                     {htmlFiles.map((file, i) => (
-                        <div key={i} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                        <div key={i} className="flex items-center justify-between p-2 rounded-md bg-muted/50 group">
                             <div className="flex items-center gap-3">
                                 <FileCode className="w-6 h-6 text-primary" />
                                 <div>
@@ -153,10 +172,25 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
                                     <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
                                 </div>
                             </div>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
+                                onClick={() => handleRemoveFile(i)}
+                                type="button"
+                                aria-label={`Remove ${file.name}`}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
                     ))}
                     </div>
                 </ScrollArea>
+                <div className="p-2 text-center mt-2">
+                    <label htmlFor="htmlUpload" className="text-sm text-primary font-medium cursor-pointer hover:underline">
+                        Add more files...
+                    </label>
+                </div>
               </div>
             )}
 

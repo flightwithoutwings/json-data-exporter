@@ -38,17 +38,32 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
-      if (files) {
-        const fileList = Array.from(files);
-        for(const file of fileList) {
+      const newFiles = event.target.files;
+      if (newFiles) {
+        let allValid = true;
+        const newFileList = Array.from(newFiles);
+
+        for (const file of newFileList) {
           if (file.size > 4 * 1024 * 1024) { // 4MB limit
             setFileError(`File "${file.name}" is too large. Please select images under 4MB.`);
-            return;
+            allValid = false;
+            break;
           }
         }
-        setFileError(null);
-        setImageFiles(fileList);
+        
+        if (allValid) {
+            setFileError(null);
+            // Append new files, avoiding duplicates based on name and size
+            setImageFiles(prevFiles => {
+                const existingFiles = new Set(prevFiles.map(f => `${f.name}-${f.size}`));
+                const filteredNewFiles = newFileList.filter(f => !existingFiles.has(`${f.name}-${f.size}`));
+                return [...prevFiles, ...filteredNewFiles];
+            });
+        }
+      }
+      // Reset the file input to allow selecting the same file again if removed
+      if(fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
     };
     
@@ -59,6 +74,10 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
             fileInputRef.current.value = "";
         }
     }
+    
+    const handleRemoveImage = (indexToRemove: number) => {
+        setImageFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToRemove));
+    };
 
     useImperativeHandle(ref, () => ({
       clear: handleClearImages,
@@ -156,17 +175,34 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
                 <ScrollArea className="h-40 w-full">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2">
                     {imageFiles.map((file, i) => (
-                        <div key={i} className="relative aspect-[2/3] rounded-md overflow-hidden">
+                        <div key={i} className="relative aspect-[2/3] rounded-md overflow-hidden group">
                            <Image
                             src={URL.createObjectURL(file)}
                             alt={`Preview of ${file.name}`}
                             fill
                             className="object-cover"
                             />
+                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Button 
+                                    variant="destructive" 
+                                    size="icon" 
+                                    className="h-8 w-8 rounded-full" 
+                                    onClick={() => handleRemoveImage(i)}
+                                    type="button"
+                                    aria-label={`Remove ${file.name}`}
+                                >
+                                    <X className="h-5 w-5" />
+                                </Button>
+                            </div>
                         </div>
                     ))}
                     </div>
                 </ScrollArea>
+                <div className="p-2 text-center mt-2">
+                    <label htmlFor="imageUpload" className="text-sm text-primary font-medium cursor-pointer hover:underline">
+                        Add more images...
+                    </label>
+                </div>
               </div>
             )}
 
