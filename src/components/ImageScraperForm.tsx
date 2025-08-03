@@ -164,7 +164,7 @@ export const ImageScraperForm = forwardRef<{ clear: () => void }, ImageScraperFo
                      <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full"
+                        className="h-8 w-8 rounded-full text-destructive hover:bg-destructive hover:text-destructive-foreground"
                         onClick={handleClearImages}
                         type="button"
                         aria-label="Remove all files"

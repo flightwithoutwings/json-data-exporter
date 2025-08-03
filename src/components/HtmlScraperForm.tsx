@@ -153,7 +153,7 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
                      <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full"
+                        className="h-8 w-8 rounded-full text-destructive hover:bg-destructive hover:text-destructive-foreground"
                         onClick={handleClearFiles}
                         type="button"
                         aria-label="Remove all files"
@@ -175,7 +175,7 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
+                                className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive hover:text-destructive-foreground" 
                                 onClick={() => handleRemoveFile(i)}
                                 type="button"
                                 aria-label={`Remove ${file.name}`}
