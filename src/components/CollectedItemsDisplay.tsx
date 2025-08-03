@@ -49,7 +49,7 @@ export function CollectedItemsDisplay({ items, onEditItem, onRemoveItem, onExpor
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="max-h-[500px] w-full rounded-md border">
+        <ScrollArea className="h-[400px] w-full rounded-md border">
           <Table>
             <TableHeader className="sticky top-0 bg-card z-10">
               <TableRow>
@@ -81,8 +81,8 @@ export function CollectedItemsDisplay({ items, onEditItem, onRemoveItem, onExpor
                     <Button variant="ghost" size="icon" onClick={() => onEditItem(item)} aria-label={`Edit ${item.title}`}>
                       <Edit3 className="h-4 w-4 text-primary" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onRemoveItem(item.id)} aria-label={`Remove ${item.title}`}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                    <Button variant="ghost" size="icon" onClick={() => onRemoveItem(item.id)} aria-label={`Remove ${item.title}`} className="hover:bg-destructive/20 text-destructive">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
