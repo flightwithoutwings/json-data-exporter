@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppHeader } from '@/components/AppHeader';
 import { ScraperForm } from '@/components/ScraperForm';
 import { ImageScraperForm } from '@/components/ImageScraperForm';
@@ -27,6 +27,10 @@ export default function HomePage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null); // ID of item from collection being edited
 
   const { toast } = useToast();
+
+  const imageScraperRef = useRef<{ clear: () => void }>(null);
+  const htmlScraperRef = useRef<{ clear: () => void }>(null);
+
 
   // Load collected items from localStorage on mount
   useEffect(() => {
@@ -114,6 +118,10 @@ export default function HomePage() {
     setCurrentItemData(null);
     setOriginalScrapedData(null);
     clearMessages();
+    
+    // Clear file inputs
+    imageScraperRef.current?.clear();
+    htmlScraperRef.current?.clear();
   };
 
   const handleDownloadCurrentItem = (itemToDownload: ScrapedItemData) => {
@@ -192,6 +200,7 @@ export default function HomePage() {
             </TabsContent>
             <TabsContent value="image">
                  <ImageScraperForm
+                    ref={imageScraperRef}
                     onScrapeStart={handleScrapeStart}
                     onScrapeSuccess={(data) => handleScrapeSuccess(data, 'Image Upload')}
                     onScrapeError={handleScrapeError}
@@ -200,6 +209,7 @@ export default function HomePage() {
             </TabsContent>
             <TabsContent value="file">
                  <HtmlScraperForm
+                    ref={htmlScraperRef}
                     onScrapeStart={handleScrapeStart}
                     onScrapeSuccess={(data) => handleScrapeSuccess(data, 'File Upload')}
                     onScrapeError={handleScrapeError}
