@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -78,10 +79,10 @@ export function CollectedItemsDisplay({ items, onEditItem, onRemoveItem, onExpor
                   <TableCell className="max-w-xs truncate" title={item.author}>{item.author}</TableCell>
                   <TableCell>{item.year}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => onEditItem(item)} aria-label={`Edit ${item.title}`}>
+                    <Button variant="ghost" size="icon" onClick={() => onEditItem(item)} aria-label={`Edit ${item.title}`} className="hover:bg-accent/20">
                       <Edit3 className="h-4 w-4 text-primary" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onRemoveItem(item.id)} aria-label={`Remove ${item.title}`} className="hover:bg-destructive/20 text-destructive">
+                    <Button variant="ghost" size="icon" onClick={() => onRemoveItem(item.id)} aria-label={`Remove ${item.title}`} className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
