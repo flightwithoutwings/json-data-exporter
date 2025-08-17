@@ -61,16 +61,17 @@ export default function HomePage() {
     }
   };
 
- const handleScrapeSuccess = (data: ScrapedItemData, source: string) => {
+  const handleScrapeSuccess = (data: ScrapedItemData) => {
+    // This function is now simplified, but kept for clarity in the props chain
+    // The main logic is in handleBatchComplete
     const newItem: ScrapedItem = { ...data, id: generateId() };
     setCollectedItems(prevItems => [newItem, ...prevItems]);
-    // Give a toast for each successful extraction in a batch
     toast({
       title: "Item Added",
       description: `"${data.title.substring(0,30)}..." added to collection.`,
       variant: "default",
     });
-};
+  };
 
   const handleBatchComplete = (successCount: number, errorCount: number, source: string) => {
     setIsLoading(false);
@@ -86,11 +87,8 @@ export default function HomePage() {
       variant: errorCount > 0 ? "destructive" : "default",
     });
     // Clear the form after the batch is complete
-    if (source.includes('File')) {
-        htmlScraperRef.current?.clear();
-    }
+    htmlScraperRef.current?.clear();
   }
-
 
   const handleScrapeError = (errorMessage: string) => {
       // For batch processing, individual errors are logged to console.
@@ -201,7 +199,7 @@ export default function HomePage() {
         <HtmlScraperForm
           ref={htmlScraperRef}
           onScrapeStart={handleScrapeStart}
-          onScrapeSuccess={(data, source) => handleScrapeSuccess(data, source)}
+          onScrapeSuccess={(data) => handleScrapeSuccess(data)}
           onScrapeError={handleScrapeError}
           onBatchComplete={handleBatchComplete}
           isLoading={isLoading}

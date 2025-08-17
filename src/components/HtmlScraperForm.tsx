@@ -14,7 +14,7 @@ import { parseHtmlContent } from '@/lib/parser';
 
 interface HtmlScraperFormProps {
   onScrapeStart: () => void;
-  onScrapeSuccess: (data: ScrapedItemData, source: string) => void;
+  onScrapeSuccess: (data: ScrapedItemData) => void;
   onScrapeError: (error: string) => void;
   onBatchComplete: (successCount: number, errorCount: number, source: string) => void;
   isLoading: boolean;
@@ -88,7 +88,7 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (htmlFiles.length === 0) {
-        onScrapeError("Please select one or more HTML or HTM files first.");
+        setFileError("Please select one or more HTML or HTM files first.");
         return;
       }
 
@@ -103,7 +103,7 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
             const content = await file.text();
             const result = await scrapeHtmlContent(content, file.name);
             if (result.data) {
-                onScrapeSuccess(result.data, `File: ${file.name}`);
+                onScrapeSuccess(result.data);
                 successCount++;
             } else if (result.error) {
                 onScrapeError(result.error);
@@ -213,7 +213,7 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
               ) : (
                 <Upload className="mr-2 h-4 w-4" />
               )}
-              {currentIsLoading ? `Parsing ${htmlFiles.length} File(s)...` : `Extract Data from ${htmlFiles.length} File(s)`}
+              {currentIsLoading ? `Parsing ${htmlFiles.length} File(s)...` : `Extract Data from ${htmlFiles.length || 0} File(s)`}
             </Button>
           </form>
         </CardContent>
@@ -222,5 +222,3 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
   }
 );
 HtmlScraperForm.displayName = 'HtmlScraperForm';
-
-    
