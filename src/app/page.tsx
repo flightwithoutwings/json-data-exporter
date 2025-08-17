@@ -84,13 +84,6 @@ export default function HomePage() {
         description: `Data for "${data.title.substring(0,30)}..." has been loaded.`,
         variant: "default",
       });
-      // Clear file inputs upon successful extraction
-      if (source.startsWith('Image')) {
-          imageScraperRef.current?.clear();
-      }
-      if (source.startsWith('File')) {
-          htmlScraperRef.current?.clear();
-      }
     }
   };
 
@@ -200,7 +193,8 @@ export default function HomePage() {
     }
     const filename = `web_scraper_collection_${new Date().toISOString().split('T')[0]}.json`;
     downloadJson(collectedItems, filename);
-    toast({ title: "Collection Exported", description: `All ${collectedItems.length} items exported.` });
+    toast({ title: "Collection Exported", description: `All ${collectedItems.length} items exported and collection cleared.` });
+    setCollectedItems([]);
   };
 
 
