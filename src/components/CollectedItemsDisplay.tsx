@@ -72,7 +72,7 @@ export function CollectedItemsDisplay({ items, onEditItem, onRemoveItem, onExpor
                       height={75}
                       className="object-cover rounded-sm"
                       data-ai-hint="book cover"
-                      unoptimized={item.imageUrl?.startsWith('http')}
+                      unoptimized={true}
                     />
                   </TableCell>
                   <TableCell className="font-medium max-w-xs truncate" title={item.title}>{item.title}</TableCell>

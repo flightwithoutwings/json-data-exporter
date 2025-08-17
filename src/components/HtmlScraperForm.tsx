@@ -9,7 +9,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Upload, FileCode, Loader2, X, AlertCircle } from 'lucide-react';
 import type { ScrapedItemData } from '@/types';
-import { scrapeHtmlContent } from '@/app/actions';
+import { parseHtmlContent } from '@/lib/parser';
+
 
 interface HtmlScraperFormProps {
   onScrapeStart: () => void;
@@ -71,6 +72,18 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
     useImperativeHandle(ref, () => ({
       clear: handleClearFiles,
     }));
+    
+    const scrapeHtmlContent = async (htmlContent: string, fileName: string): Promise<{ data?: ScrapedItemData; error?: string }> => {
+        if (!htmlContent) {
+            return { error: "HTML content is empty." };
+        }
+
+        try {
+            return parseHtmlContent(htmlContent, `File: ${fileName}`);
+        } catch (e: any) {
+            return { error: `An error occurred during HTML parsing: ${e.message}` };
+        }
+    }
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -209,3 +222,5 @@ export const HtmlScraperForm = forwardRef<{ clear: () => void }, HtmlScraperForm
   }
 );
 HtmlScraperForm.displayName = 'HtmlScraperForm';
+
+    

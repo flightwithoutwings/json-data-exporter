@@ -1,8 +1,4 @@
-
-
 // @ts-nocheck
-"use server";
-
 import type { ScrapedItemData } from '@/types';
 
 // WARNING: This is a very basic and fragile HTML parser. 
@@ -435,7 +431,7 @@ function extractImageUrl(html: string): string {
   return ""; // Return empty if no suitable image is found
 }
 
-function parseHtmlContent(html: string, sourceIdentifier: string): { data?: ScrapedItemData; error?: string } {
+export function parseHtmlContent(html: string, sourceIdentifier: string): { data?: ScrapedItemData; error?: string } {
     const title = extractTextContent(html, 'productTitle') || extractTextContent(html, undefined, 'a-size-extra-large', 'h1') || "Title not found";
     const author = extractAuthor(html);
     const year = extractPublicationDate(html);
@@ -468,53 +464,3 @@ function parseHtmlContent(html: string, sourceIdentifier: string): { data?: Scra
       },
     };
 }
-
-
-export async function scrapeUrl(url: string): Promise<{ data?: ScrapedItemData; error?: string }> {
-  if (!url) {
-    return { error: "URL is required." };
-  }
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9',
-        // It might be beneficial to mimic more browser headers if CAPTCHAs are frequent
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-User': '?1',
-        'Sec-Fetch-Dest': 'document',
-        'Upgrade-Insecure-Requests': '1'
-      }
-    });
-
-    if (!response.ok) {
-      return { error: `Failed to fetch URL: ${response.status} ${response.statusText}` };
-    }
-
-    const html = await response.text();
-    return parseHtmlContent(html, url);
-
-  } catch (e: any) {
-    // Check for specific fetch errors if possible, e.g., network errors
-    if (e.message && e.message.toLowerCase().includes('failed to fetch')) {
-        return { error: `Network error: Failed to fetch the URL. Please check your internet connection and the URL. (${e.message})` };
-    }
-    return { error: `An error occurred during scraping: ${e.message}` };
-  }
-}
-
-export async function scrapeHtmlContent(htmlContent: string, fileName: string): Promise<{ data?: ScrapedItemData; error?: string }> {
-    if (!htmlContent) {
-        return { error: "HTML content is empty." };
-    }
-
-    try {
-        return parseHtmlContent(htmlContent, `File: ${fileName}`);
-    } catch (e: any) {
-        return { error: `An error occurred during HTML parsing: ${e.message}` };
-    }
-}
-    
