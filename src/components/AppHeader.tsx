@@ -6,7 +6,7 @@ export function AppHeader() {
       <div className="container mx-auto px-4 h-16 flex items-center">
         <ScanLine className="h-8 w-8 text-primary mr-3" />
         <h1 className="text-2xl font-headline font-semibold text-foreground">
-          Web Scraper JSON Exporter
+          JSON Data Exporter
         </h1>
       </div>
     </header>

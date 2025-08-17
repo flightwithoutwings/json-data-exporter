@@ -3,13 +3,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { AppHeader } from '@/components/AppHeader';
-import { ScraperForm } from '@/components/ScraperForm';
-import { ImageScraperForm } from '@/components/ImageScraperForm';
 import { HtmlScraperForm } from '@/components/HtmlScraperForm';
 import { ScrapedItemEditor } from '@/components/ScrapedItemEditor';
 import { CollectedItemsDisplay } from '@/components/CollectedItemsDisplay';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { downloadJson, generateId } from '@/lib/utils';
@@ -27,8 +24,7 @@ export default function HomePage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null); // ID of item from collection being edited
 
   const { toast } = useToast();
-
-  const imageScraperRef = useRef<{ clear: () => void }>(null);
+  
   const htmlScraperRef = useRef<{ clear: () => void }>(null);
 
 
@@ -58,38 +54,29 @@ export default function HomePage() {
   const handleScrapeStart = () => {
     setIsLoading(true);
     clearMessages();
-    setCurrentItemData(null);
-    setOriginalScrapedData(null);
-    setEditingItemId(null);
-  };
-
-  const handleScrapeSuccess = (data: ScrapedItemData, source: string = "URL", isBatch: boolean = false) => {
-    if (isBatch) {
-       const newItem: ScrapedItem = { ...data, id: generateId() };
-       setCollectedItems(prevItems => [newItem, ...prevItems]);
-       // Don't show in editor, but give a toast
-       toast({
-         title: "Item Added",
-         description: `"${data.title.substring(0,30)}..." added to collection.`,
-         variant: "default",
-       });
-    } else {
-      setIsLoading(false);
-      const dataWithSource = { ...data, sourceUrl: data.sourceUrl || source };
-      setCurrentItemData(dataWithSource);
-      setOriginalScrapedData(dataWithSource); // Store original for reset
-      setSuccessMessage(`Data extracted from ${source} successfully! You can now edit it below.`);
-      toast({
-        title: "Extraction Successful",
-        description: `Data for "${data.title.substring(0,30)}..." has been loaded.`,
-        variant: "default",
-      });
+    // Keep the editor open if an item is being edited.
+    if (!editingItemId) {
+      setCurrentItemData(null);
+      setOriginalScrapedData(null);
     }
   };
 
+ const handleScrapeSuccess = (data: ScrapedItemData, source: string) => {
+    const newItem: ScrapedItem = { ...data, id: generateId() };
+    setCollectedItems(prevItems => [newItem, ...prevItems]);
+    // Give a toast for each successful extraction in a batch
+    toast({
+      title: "Item Added",
+      description: `"${data.title.substring(0,30)}..." added to collection.`,
+      variant: "default",
+    });
+};
+
   const handleBatchComplete = (successCount: number, errorCount: number, source: string) => {
     setIsLoading(false);
-    setSuccessMessage(`${successCount} item(s) successfully extracted and added to your collection from ${source}.`);
+    if (successCount > 0) {
+      setSuccessMessage(`${successCount} item(s) successfully extracted and added to your collection from ${source}.`);
+    }
     if (errorCount > 0) {
       setError(`${errorCount} file(s) failed to process. See console for details.`);
     }
@@ -98,28 +85,22 @@ export default function HomePage() {
       description: `${successCount} processed, ${errorCount} failed.`,
       variant: errorCount > 0 ? "destructive" : "default",
     });
-     if (source.includes('Image')) {
-        imageScraperRef.current?.clear();
-    }
+    // Clear the form after the batch is complete
     if (source.includes('File')) {
         htmlScraperRef.current?.clear();
     }
   }
 
 
-  const handleScrapeError = (errorMessage: string, isBatch: boolean = false) => {
-    if (isBatch) {
+  const handleScrapeError = (errorMessage: string) => {
+      // For batch processing, individual errors are logged to console.
+      // We also show a toast for each error.
       console.error("Batch scrape error:", errorMessage);
-      // Don't stop the whole batch, just log the error. The summary will be at the end.
-    } else {
-      setIsLoading(false);
-      setError(errorMessage);
       toast({
         title: "Extraction Error",
         description: errorMessage,
         variant: "destructive",
       });
-    }
   };
 
   const handleUpdateCurrentItem = (updatedData: ScrapedItemData) => {
@@ -217,42 +198,14 @@ export default function HomePage() {
           </Alert>
         )}
         
-        <Tabs defaultValue="url" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="url">Scrape from URL</TabsTrigger>
-                <TabsTrigger value="image">Scrape from Image(s)</TabsTrigger>
-                <TabsTrigger value="file">Scrape from File(s)</TabsTrigger>
-            </TabsList>
-            <TabsContent value="url">
-                <ScraperForm
-                    onScrapeStart={handleScrapeStart}
-                    onScrapeSuccess={(data) => handleScrapeSuccess(data, 'URL')}
-                    onScrapeError={handleScrapeError}
-                    isLoading={isLoading}
-                />
-            </TabsContent>
-            <TabsContent value="image">
-                 <ImageScraperForm
-                    ref={imageScraperRef}
-                    onScrapeStart={handleScrapeStart}
-                    onScrapeSuccess={(data, source) => handleScrapeSuccess(data, source, true)}
-                    onScrapeError={(err) => handleScrapeError(err, true)}
-                    onBatchComplete={handleBatchComplete}
-                    isLoading={isLoading}
-                />
-            </TabsContent>
-            <TabsContent value="file">
-                 <HtmlScraperForm
-                    ref={htmlScraperRef}
-                    onScrapeStart={handleScrapeStart}
-                    onScrapeSuccess={(data, source) => handleScrapeSuccess(data, source, true)}
-                    onScrapeError={(err) => handleScrapeError(err, true)}
-                    onBatchComplete={handleBatchComplete}
-                    isLoading={isLoading}
-                />
-            </TabsContent>
-        </Tabs>
-
+        <HtmlScraperForm
+          ref={htmlScraperRef}
+          onScrapeStart={handleScrapeStart}
+          onScrapeSuccess={(data, source) => handleScrapeSuccess(data, source)}
+          onScrapeError={handleScrapeError}
+          onBatchComplete={handleBatchComplete}
+          isLoading={isLoading}
+        />
 
         {currentItemData && (
           <ScrapedItemEditor
@@ -273,7 +226,7 @@ export default function HomePage() {
         />
       </main>
       <footer className="text-center py-4 text-sm text-muted-foreground border-t border-border">
-        Web Scraper JSON Exporter &copy; {new Date().getFullYear()}
+        JSON Data Exporter &copy; {new Date().getFullYear()}
       </footer>
     </div>
   );

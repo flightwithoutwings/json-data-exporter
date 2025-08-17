@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Web Scraper JSON Exporter',
+  title: 'JSON Data Exporter',
   description: 'Scrape website data and export as JSON.',
 };
 
